@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  baza:
+    image: postgres
+    volumes:
+      - dane_bazy:/Users/sawik/Desktop/Docker\ Nauka
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - baza-net
+
+  admin:
+    image: adminer
+    networks:
+      - baza-net
+    ports:
+    - "8080:8080"
+    depends_on:
+      - baza
+
+  ratings:
+    build: /ratiings
+    tty: true
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    networks:
+      - baza-net
+    depends_on:
+      - baza
+      # Po otrzyaniu eventu o kupnie biletu odblokuj mozliwosc oceny
+  #shop:
+  #  build: /shop
+    # JAk uzytkownik kupi bilet na film to leci event przez rabbita ze uzytkownik kupil bilet
+  rabbit:
+    image: rabbitmq
+
+  front:
+    image: nginx
+
+    # /ratings caly ruch do ratings a na /shop caly ruch do szopa reszta lokalnie  port 80/ratings 80/shop haslo proxypass
+
+
+volumes:
+  dane_bazy:
+networks:
+  baza-net:
